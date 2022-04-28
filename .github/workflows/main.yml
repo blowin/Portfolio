@@ -1,7 +1,7 @@
-name: CI
+name: github pages
 on:
   push:
-    branches: master
+    branches: main
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -9,21 +9,17 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v2
         with:
-          submodules: true  # Fetch Hugo themes (true OR recursive)
-          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
-
-      - name: Update theme
-        # (Optional)If you have the theme added as submodule, you can pull it and use the most updated version
-        run: git submodule update --init --recursive
+          submodules: true
+          fetch-depth: 0
 
       - name: Setup hugo
         uses: peaceiris/actions-hugo@v2
         with:
           hugo-version: "0.97.3"
           extended: true
-
-      - name: Build
-        run: hugo --minify
+      
+      - name: 🛠️ Build
+        run: hugo --source website --minify
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
