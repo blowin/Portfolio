@@ -1,0 +1,101 @@
+baseURL = 'https://blowin.github.io/portfolio/'
+languageCode = 'ru'
+defaultContentLanguage = 'ru'
+title = 'Сущевский Дмитрий'
+theme = 'hello-friend-ng'
+paginate     = 10
+
+archetypeDir = "archetypes"
+contentDir   = "content"
+dataDir      = "data"
+layoutDir    = "layouts"
+
+[permalinks]
+  posts = "/posts/:year/:month/:title/"
+  
+[author]
+  name = "Сущевский Дмитрий"
+
+[taxonomies]
+  tag      = "tags"
+  category = "categories"
+  series   = "series"
+
+[params]
+  dateform        = "Январь 1, 2020"
+  dateformShort   = "Январь 1"
+  dateformNum     = "2020-01-01"
+  dateformNumTime = "2020-01-01 00:00"
+
+  # Subtitle for home
+  homeSubtitle = "Мой маленький блог :)"
+
+  # Set disableReadOtherPosts to true in order to hide the links to other posts.
+  disableReadOtherPosts = false
+
+  # Enable sharing buttons, if you like
+  enableSharingButtons = true
+
+  # Metadata mostly used in document's head
+  description = "Домашняя"
+  keywords = "homepage, blog"
+  images = [""]
+
+  enableThemeToggle = true
+
+  [params.footer]
+    trademark = true
+    rss = true
+    copyright = false
+    author = false
+
+    topText = []
+    bottomText = []
+
+
+  [[params.social]]
+    name = "email"
+    url  = "mailto:d.suschevsky.personal@gmail.com"
+
+  [[params.social]]
+    name = "github"
+    url  = "https://github.com/blowin/"
+
+  [[params.social]]
+    name = "linkedin"
+    url  = "https://www.linkedin.com/in/dmitry-sushchevsky/"
+
+  [[params.social]]
+    name = "telegram"
+    url  = "https://t.me/kolvice/"
+
+  [[params.social]]
+    name = "instagram"
+    url  = "https://www.instagram.com/idsisdead/"
+
+[languages]
+  [languages.ru]
+    title = "Сущевский Дмитрий"
+    subtitle = ""
+    keywords = ""
+    copyright = ''
+    readOtherPosts = "Читать другие посты"
+
+    [languages.ru.params.logo]
+      logoText = "blowin"
+      logoHomeLink = "/portfolio"
+
+
+[menu]
+  [[menu.main]]
+    identifier = "about"
+    name       = "Обо мне"
+    url        = "about/"
+  [[menu.main]]
+    identifier = "projects"
+    name       = "Проекты"
+    url        = "projects/"
+  [[menu.main]]
+    identifier = "post"
+    name       = "Блог"
+    url        = "posts/"
