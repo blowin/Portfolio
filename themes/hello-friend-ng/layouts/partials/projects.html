@@ -1,0 +1,15 @@
+{{ if .Params.IncludeProjects }}
+    <div class="card_container center">
+        {{ range .Site.Data.projects }}
+            <div class="card">
+                <h2 class="card_text">{{ .Name }}</h2>
+                <hr/>
+                <p>{{ .Description }}</p>
+                <p><b>Технологии: </b>{{ delimit .Technologies ", " }}</p>
+                <a href="{{ .Url }}">Смотреть</a>
+            </div>
+        {{ end }}
+    </div>
+
+    <p>Изучить больше проектов можно в моём <a href="https://github.com/blowin">GitHub</a>.</p>
+{{ end }}

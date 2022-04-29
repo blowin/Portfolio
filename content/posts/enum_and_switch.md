@@ -3,7 +3,6 @@ title: "Enum и switch, и что с ними не так"
 date: 2020-09-04T14:00:00+03:00
 draft: false
 toc: false
-custom_title_value: ППП
 categories: ["programming"]
 images:
 tags:

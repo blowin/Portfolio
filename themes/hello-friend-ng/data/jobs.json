@@ -1,0 +1,56 @@
+[
+    {
+        "Name": "Корпитек",
+        "DateRange": "август 2018 - текущий момент",
+        "Projects": [
+            {
+                "Domain": "Здравоохронение",
+                "Description": "",
+                "Technologies": [
+                    "WCF",
+                    "ADO Net",
+                    "WinForms",
+                    "DevExpess",
+                    "MSSQL",
+                    "TFS",
+                    "gRPC",
+                    "nodejs"
+                ]
+            },
+            {
+                "Domain": "Логистика",
+                "Description": "Разработка клиентского приложения, а также работа с WCF сервисом",
+                "Technologies": [
+                    "WCF",
+                    "ADO Net",
+                    "WinForms",
+                    "DevExpess",
+                    "MSSQL",
+                    "TFS",
+                    "FluentValidation",
+                    "Serilog",
+                    "разработал task scheduler",
+                    "работа с электронным документооборотом",
+                    "работа с большой кодовой базой"
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "FuryLion",
+        "DateRange": "май 2018 - август 2018",
+        "Projects": [
+            {
+                "Domain": "Мобильная разработка",
+                "Description": "",
+                "Technologies": [
+                    "Unity", 
+                    "UniRx", 
+                    "DOTween",
+                    "Photon Network", 
+                    "Zenject"
+                ]
+            }
+        ]
+    }
+]
