@@ -1,4 +1,200 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/portfolio/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/portfolio/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Enum и switch, сквозь года</title><link>https://blowin.github.io/portfolio/posts/2022/04/enum-%D0%B8-switch-%D1%81%D0%BA%D0%B2%D0%BE%D0%B7%D1%8C-%D0%B3%D0%BE%D0%B4%D0%B0/</link><pubDate>Fri, 29 Apr 2022 19:16:46 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/04/enum-%D0%B8-switch-%D1%81%D0%BA%D0%B2%D0%BE%D0%B7%D1%8C-%D0%B3%D0%BE%D0%B4%D0%B0/</guid><description>Пару лет назад, я писал статью. По прошествии нескольких лет, произошли определенные переосмысления, которые выросли в данную статью.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/portfolio/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/portfolio/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Дружелюбная Factory</title><link>https://blowin.github.io/portfolio/posts/2022/05/%D0%B4%D1%80%D1%83%D0%B6%D0%B5%D0%BB%D1%8E%D0%B1%D0%BD%D0%B0%D1%8F-factory/</link><pubDate>Sun, 01 May 2022 19:46:31 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/05/%D0%B4%D1%80%D1%83%D0%B6%D0%B5%D0%BB%D1%8E%D0%B1%D0%BD%D0%B0%D1%8F-factory/</guid><description>Сталкивались ли вы с проблемой, когда у вас есть фабрика по созданию объектов, вы её создаётся в месте, где вам нужен объект и есть зависимости, которые в данном случае точно не нужны для создания вашего объекта и вы либо их проставляется в default, либо же вообще пытаетесь передать?
+Как правило, выглядит это ужасно:
+var factory = new ObjFactory(null, docId, dbService, null, null); var doc = factory.Create(ObjType.Doc); У данного подхода я не вижу плюсов от слова &amp;lsquo;совсем&amp;rsquo;.</description><content type="html"><![CDATA[<p>Сталкивались ли вы с проблемой, когда у вас есть фабрика по созданию объектов, вы её создаётся в месте, где вам нужен объект и есть зависимости, которые в данном случае точно не нужны для создания вашего объекта и вы либо их проставляется в default, либо же вообще пытаетесь передать?</p>
+<p>Как правило, выглядит это ужасно:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> factory = <span style="color:#66d9ef">new</span> ObjFactory(<span style="color:#66d9ef">null</span>, docId, dbService, <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> doc = factory.Create(ObjType.Doc);
+</span></span></code></pre></div><p>У данного подхода я не вижу плюсов от слова &lsquo;совсем&rsquo;.</p>
+<p>Давайте лучше перечислим минусы:</p>
+<ul>
+<li>Непонятно, что мы проставляем в default (да, 
+<a href="https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/named-and-optional-arguments" target="_blank">named arguments</a> может улучшить ситуацию).</li>
+<li>Мы должны знать/смотреть детали реализации, для корректного конфигурирования фабрики.</li>
+<li>При необходимости новой зависимости которая уже передаётся в конструктор, никто нас не <del>погладит по головке</del> ударит по рукам, за то, что мы её используем в фабрике, но не исправили передачу данного аргумента (хочется получить сразу же ошибку компиляции).</li>
+</ul>
+<h1 id="решение">Решение</h1>
+<hr>
+<p>Будем использовать эту фабрику:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">enum</span> ReportType 
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  SellThroughRateByProduct,
+</span></span><span style="display:flex;"><span>  MonthEndInventoryValue,
+</span></span><span style="display:flex;"><span>  PercentOfInventorySold
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">IReport</span> { }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">SellThroughRateByProductReport</span>(ICollection&lt;Guid&gt; Products) : IReport;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">MonthEndInventoryValueReport</span>(DateOnly Date) : IReport;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">PercentOfInventorySoldReport</span>(ICollection&lt;Guid&gt; TypeOfProducts, DateOnly StartDate, DateOnly EndDate) : IReport;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ReportFactory</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> ICollection&lt;Guid&gt; <span style="color:#ae81ff">_</span>products;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> DateOnly <span style="color:#ae81ff">_d</span>ate;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> ICollection&lt;Guid&gt; <span style="color:#ae81ff">_</span>typeOfProducts;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> DateOnly <span style="color:#ae81ff">_</span>startDate;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> DateOnly <span style="color:#ae81ff">_</span>endDate;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ReportFactory(ICollection&lt;Guid&gt; products, DateOnly date, ICollection&lt;Guid&gt; typeOfProducts, DateOnly startDate, DateOnly endDate)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>products = products;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_d</span>ate = date;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>typeOfProducts = typeOfProducts;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>startDate = startDate;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>endDate = endDate;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> IReport Create(ReportType type)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">switch</span> (type)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> ReportType.SellThroughRateByProduct:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// сложный код по получению данных, инициализации и т.д </span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> SellThroughRateByProductReport(<span style="color:#ae81ff">_</span>products);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> ReportType.MonthEndInventoryValue:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// сложный код по получению данных, инициализации и т.д</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> MonthEndInventoryValueReport(<span style="color:#ae81ff">_d</span>ate);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> ReportType.PercentOfInventorySold:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// сложный код по получению данных, инициализации и т.д</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> PercentOfInventorySoldReport(<span style="color:#ae81ff">_</span>typeOfProducts, <span style="color:#ae81ff">_</span>startDate, <span style="color:#ae81ff">_</span>endDate);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> ArgumentOutOfRangeException(nameof(type), type, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>У меня есть несколько вариантов решения данной проблемы. Рассмотрим каждый из них отдельно</p>
+<h2 id="вариант-1---фабричные-методы">Вариант 1 - фабричные методы</h2>
+<p>Идея проста, фабрика сама знает какие зависимости для какого типа отчёта нужны, так давайте перенесем эту ответственность в саму factory, с использованием фабричных методов.</p>
+<p>Дорабатываем ReportFactory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> ReportFactory ForSellThroughRateByProduct(ICollection&lt;Guid&gt; products) =&gt;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> ReportFactory(products, <span style="color:#66d9ef">default</span>, Array.Empty&lt;Guid&gt;(), <span style="color:#66d9ef">default</span>, <span style="color:#66d9ef">default</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> ReportFactory ForMonthEndInventoryValue(DateOnly date) 
+</span></span><span style="display:flex;"><span>    =&gt; <span style="color:#66d9ef">new</span> ReportFactory(Array.Empty&lt;Guid&gt;(), date, Array.Empty&lt;Guid&gt;(), <span style="color:#66d9ef">default</span>, <span style="color:#66d9ef">default</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> ReportFactory ForPercentOfInventorySold(ICollection&lt;Guid&gt; typeOfProducts, DateOnly startDate, DateOnly endDate) 
+</span></span><span style="display:flex;"><span>    =&gt; <span style="color:#66d9ef">new</span> ReportFactory(Array.Empty&lt;Guid&gt;(), <span style="color:#66d9ef">default</span>, typeOfProducts, startDate, endDate);
+</span></span></code></pre></div><h3 id="использование">Использование</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> factory = ReportFactory.ForMonthEndInventoryValue(<span style="color:#66d9ef">new</span> DateOnly(<span style="color:#ae81ff">2021</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> report = factory.Create(ReportType.MonthEndInventoryValue);
+</span></span></code></pre></div><p>По-моему куда лучше. Можно сделать так, чтобы эти методы возвращали сразу IReport, для избежания вызова <strong>factory.Create(ReportType.MonthEndInventoryValue)</strong>, чтобы не дублировать тип, так как это ещё одно потенциальное место для ошибки.</p>
+<h3 id="плюсы">Плюсы</h3>
+<ul>
+<li>При необходимости новой зависимости, будем менять сигнатуру метода и код перестанет компилироваться в местах вызова.</li>
+</ul>
+<h3 id="минусы">Минусы</h3>
+<ul>
+<li>Что, если мы хотил создать фабрику для нескольких отчётов? (рассмотрим это далее).</li>
+</ul>
+<h2 id="вариант-2---fluent-interface">Вариант 2 - fluent interface</h2>
+<p>Идея: добавляем методы для инициализации нужных полей.</p>
+<p>ReportFactory будет это выглядить следующим образом:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#75715e">// Новый конструктор</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> ReportFactory() 
+</span></span><span style="display:flex;"><span>        : <span style="color:#66d9ef">this</span>(Array.Empty&lt;Guid&gt;(), <span style="color:#66d9ef">default</span>, Array.Empty&lt;Guid&gt;(), <span style="color:#66d9ef">default</span>, <span style="color:#66d9ef">default</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Методы инициализации</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> ReportFactory ForSellThroughRateByProduct(ICollection&lt;Guid&gt; products)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">_</span>products = products;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> ReportFactory ForMonthEndInventoryValue(DateOnly date)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">_d</span>ate = date;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> ReportFactory ForPercentOfInventorySold(ICollection&lt;Guid&gt; typeOfProducts, DateOnly startDate,
+</span></span><span style="display:flex;"><span>    DateOnly endDate)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">_</span>typeOfProducts = typeOfProducts;
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">_</span>startDate = startDate;
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">_</span>endDate = endDate;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="использование-1">Использование</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> factory = <span style="color:#66d9ef">new</span> ReportFactory()
+</span></span><span style="display:flex;"><span>    .ForMonthEndInventoryValue(<span style="color:#66d9ef">new</span> DateOnly(<span style="color:#ae81ff">2021</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    .ForSellThroughRateByProduct(<span style="color:#66d9ef">new</span> List&lt;Guid&gt; { bookId, tShirtId });
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> report1 = factory.Create(ReportType.MonthEndInventoryValue);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> report2 = factory.Create(ReportType.SellThroughRateByProduct);
+</span></span></code></pre></div><h3 id="плюсы-1">Плюсы</h3>
+<ul>
+<li>При необходимости новой зависимости, будем менять сигнатуру метода и код перестанет компилироваться в местах вызова.</li>
+<li>Можем сконфигурировать фабрику для нужного количества отчётов.</li>
+</ul>
+<h3 id="минусы-1">Минусы</h3>
+<ul>
+<li>Пустой конструктор.</li>
+</ul>
+<h2 id="вариант-3---группируем-поля">Вариант 3 - группируем поля</h2>
+<p>Я бы ещё предложил вынести все необходимые зависимости для отчёта в отдельные объекты, чтобы они изначально группировались логически:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">SellThroughRateByProductParameter</span>(ICollection&lt;Guid&gt; Products);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">MonthEndInventoryValueReportParameter</span>(DateOnly Date);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">PercentOfInventorySoldReportParameter</span>(ICollection&lt;Guid&gt; TypeOfProducts, DateOnly StartDate, DateOnly EndDate);
+</span></span></code></pre></div><p>Меняем ReportFactory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ReportFactory</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> SellThroughRateByProductParameter <span style="color:#ae81ff">_</span>sellThroughRateByProductParameter;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> MonthEndInventoryValueReportParameter <span style="color:#ae81ff">_</span>monthEndInventoryValueReportParameter;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> PercentOfInventorySoldReportParameter <span style="color:#ae81ff">_</span>percentOfInventorySoldReportParameter;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ReportFactory(SellThroughRateByProductParameter sellThroughRateByProductParameter, 
+</span></span><span style="display:flex;"><span>        MonthEndInventoryValueReportParameter monthEndInventoryValueReportParameter, 
+</span></span><span style="display:flex;"><span>        PercentOfInventorySoldReportParameter percentOfInventorySoldReportParameter)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>sellThroughRateByProductParameter = sellThroughRateByProductParameter;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>monthEndInventoryValueReportParameter = monthEndInventoryValueReportParameter;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>percentOfInventorySoldReportParameter = percentOfInventorySoldReportParameter;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> IReport Create(ReportType type)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">switch</span> (type)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> ReportType.SellThroughRateByProduct:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> SellThroughRateByProductReport(<span style="color:#ae81ff">_</span>sellThroughRateByProductParameter.Products);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> ReportType.MonthEndInventoryValue:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> MonthEndInventoryValueReport(<span style="color:#ae81ff">_</span>monthEndInventoryValueReportParameter.Date);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> ReportType.PercentOfInventorySold:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> PercentOfInventorySoldReport(<span style="color:#ae81ff">_</span>percentOfInventorySoldReportParameter.TypeOfProducts, <span style="color:#ae81ff">_</span>percentOfInventorySoldReportParameter.StartDate, <span style="color:#ae81ff">_</span>percentOfInventorySoldReportParameter.EndDate);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> ArgumentOutOfRangeException(nameof(type), type, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Почему в Create я не передаю просто объект в конструктор?</p>
+<p>Все зависит от ситуации:</p>
+<ol>
+<li>
+<p>Возможно вы используете чужой код и там передаются параметры отдельно.</p>
+</li>
+<li>
+<p>Перед созданием может быть логика получения данных, подготовка каких-то данных, на основе параметров, переданных в фабрику и в реальности другие данные будут передаваться в конструктор.</p>
+</li>
+</ol>
+<p>Этот подход можно использовать с теми, что были указаны выше.</p>
+<h2 id="ссылки">Ссылки</h2>
+<ul>
+<li>
+<a href="https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/named-and-optional-arguments" target="_blank">Named arguments</a></li>
+<li>
+<a href="https://refactoring.guru/design-patterns/factory-method" target="_blank">Factory</a></li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Fluent_interface#:~:text=In%20software%20engineering%2C%20a%20fluent,Eric%20Evans%20and%20Martin%20Fowler." target="_blank">Fluent interface</a></li>
+</ul>
+]]></content></item><item><title>Enum и switch, сквозь года</title><link>https://blowin.github.io/portfolio/posts/2022/04/enum-%D0%B8-switch-%D1%81%D0%BA%D0%B2%D0%BE%D0%B7%D1%8C-%D0%B3%D0%BE%D0%B4%D0%B0/</link><pubDate>Fri, 29 Apr 2022 19:16:46 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/04/enum-%D0%B8-switch-%D1%81%D0%BA%D0%B2%D0%BE%D0%B7%D1%8C-%D0%B3%D0%BE%D0%B4%D0%B0/</guid><description>Пару лет назад, я писал статью. По прошествии нескольких лет, произошли определенные переосмысления, которые выросли в данную статью.
 Проблема Проблема остаётся той же:
 огромные switch по всему коду проблемы с поддержкой этого добра. Что используем для решения проблемы Будем использовать библиотеку SmartEnum.
 На самом деле, это не панацея и подобный функционал реализуется за 15 минут, если по каким-то причинам вы не хотите тянуть лишнюю зависимость в ваше детище ваш проект.</description><content type="html"><![CDATA[<p>Пару лет назад, 
