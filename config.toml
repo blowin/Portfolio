@@ -24,8 +24,6 @@ layoutDir    = "layouts"
 [params]
   dateform        = "Январь 1, 2020"
   dateformShort   = "Январь 1"
-  dateformNum     = "2020-01-01"
-  dateformNumTime = "2020-01-01 00:00"
 
   # Subtitle for home
   homeSubtitle = "Мой маленький блог :)"
