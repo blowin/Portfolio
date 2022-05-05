@@ -3,7 +3,7 @@ title: "Enum и switch, и что с ними не так"
 date: 2020-09-04T14:00:00+03:00
 draft: false
 toc: false
-categories: ["programming", "csharp"]
+categories: ["programming", "csharp", "ru"]
 images:
 tags:
   - enum

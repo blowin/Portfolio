@@ -4,7 +4,7 @@ date: 2022-05-01T19:46:31+03:00
 draft: false
 toc: false
 images:
-categories: ["programming", "csharp"]
+categories: ["programming", "csharp", "ru"]
 tags:
   - factory
   - design

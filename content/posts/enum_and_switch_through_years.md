@@ -3,7 +3,7 @@ title: "Enum и switch, сквозь года"
 date: 2022-04-29T19:16:46+03:00
 draft: false
 toc: false
-categories: ["programming", "csharp"]
+categories: ["programming", "csharp", "ru"]
 images:
 tags:
   - enum
