@@ -1,6 +1,7 @@
 baseURL = 'https://blowin.github.io/portfolio/'
 languageCode = 'ru'
 defaultContentLanguage = 'ru'
+defaultContentLang = "ru"
 title = 'Сущевский Дмитрий'
 theme = 'hello-friend-ng'
 paginate     = 10
@@ -22,9 +23,11 @@ layoutDir    = "layouts"
   series   = "series"
 
 [params]
-  dateform        = "Январь 1, 2020"
-  dateformShort   = "Январь 1"
-
+  dateform        = "Jan 2, 2006"
+  dateformShort   = "Jan 2"
+  dateformNum     = "2006-01-02"
+  dateformNumTime = "2006-01-02 15:04"
+  
   # Subtitle for home
   homeSubtitle = "Мой маленький блог :)"
 
