@@ -89,7 +89,15 @@ BankAccount содержит 2 поля. Обратите внимание на 
 
 # Используем Value Object
 
-Будем использовать [Record struct](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/record-structs), для реализации Value Object. Реализуем Money и BankAccountNumber:
+Будем использовать [Record struct](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/record-structs), для реализации Value Object. 
+
+## Важно
+
+Чтобы разные инстансы Value Object вели себя как обычные примитивы. То есть, они должны быть равны в случае равенства всех полей, реализовывать **GetHashCode**, чтобы их можно было совместно использовать с коллекциями. Правильно будет вместе с **Equals** перегрузить операторы сравнения. 
+
+При использовании **record**, всё необходимое уже реализовано. Если же мы будем использовать простой класс или структуру, это необходимо сделать самостоятельно.
+
+## Реализуем Money и BankAccountNumber
 
 ```csharp
 public record struct Money
@@ -226,10 +234,7 @@ modelBuilder.Entity<BankAccount>()
 
 # Ссылки
 
-[Record struct](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/record-structs)
-
-[Value Object](https://en.wikipedia.org/wiki/Value_object)
-
-[Result](https://adambennett.dev/2020/05/the-result-monad/)
-
-[CSharpFunctionalExtensions](https://www.nuget.org/packages/CSharpFunctionalExtensions/)
+* [Record struct](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/record-structs)
+* [Value Object](https://en.wikipedia.org/wiki/Value_object)
+* [Result](https://adambennett.dev/2020/05/the-result-monad/)
+* [CSharpFunctionalExtensions](https://www.nuget.org/packages/CSharpFunctionalExtensions/)
