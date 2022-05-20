@@ -1,7 +1,7 @@
 ---
 title: "Electron + Blazor = ♥"
 date: 2022-05-20T17:15:40+03:00
-draft: true
+draft: false
 toc: false
 categories: ["programming", "csharp", "ru"]
 images:
