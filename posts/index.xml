@@ -1,4 +1,48 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/portfolio/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/portfolio/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Примитивизм</title><link>https://blowin.github.io/portfolio/posts/2022/05/%D0%BF%D1%80%D0%B8%D0%BC%D0%B8%D1%82%D0%B8%D0%B2%D0%B8%D0%B7%D0%BC/</link><pubDate>Thu, 12 May 2022 20:21:29 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/05/%D0%BF%D1%80%D0%B8%D0%BC%D0%B8%D1%82%D0%B8%D0%B2%D0%B8%D0%B7%D0%BC/</guid><description>На протяжении всего своего пути в программировании я сталкиваюсь с проблемой повсеместного использования примитивных типов, они повсюду.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/portfolio/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/portfolio/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Electron + Blazor = ♥</title><link>https://blowin.github.io/portfolio/posts/2022/05/electron--blazor/</link><pubDate>Fri, 20 May 2022 17:15:40 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/05/electron--blazor/</guid><description>Опишу, как можно собрать blazor проект с использованием electron. Это можно использовать, для любого ASP проекта.
+Шаги Устанавливаем electronNet.cli (один раз) dotnet tool install --global electronNet.cli Установить nuget пакет ElectronNET.API Добавить в Startup создание окна if (HybridSupport.IsElectronActive) { Task.Run(async () =&amp;gt; { await Electron.WindowManager.CreateBrowserViewAsync(); await Electron.WindowManager.CreateWindowAsync(new BrowserWindowOptions { MinWidth = 700, MinHeight = 500, Center = true }); }); } Добавить UseElectron в Program.</description><content type="html"><![CDATA[<p>Опишу, как можно собрать blazor проект с использованием electron. Это можно использовать, для любого ASP проекта.</p>
+<h1 id="шаги">Шаги</h1>
+<ol>
+<li>Устанавливаем electronNet.cli (один раз)</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span>dotnet tool install --global electronNet.cli
+</span></span></code></pre></div><ol>
+<li>Установить nuget пакет 
+<a href="https://www.nuget.org/packages/ElectronNET.API/" target="_blank">ElectronNET.API</a></li>
+<li>Добавить в Startup создание окна</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (HybridSupport.IsElectronActive)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	Task.Run(<span style="color:#66d9ef">async</span> () =&gt;
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">await</span> Electron.WindowManager.CreateBrowserViewAsync();
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">await</span> Electron.WindowManager.CreateWindowAsync(<span style="color:#66d9ef">new</span> BrowserWindowOptions
+</span></span><span style="display:flex;"><span>		{
+</span></span><span style="display:flex;"><span>			MinWidth = <span style="color:#ae81ff">700</span>,
+</span></span><span style="display:flex;"><span>			MinHeight = <span style="color:#ae81ff">500</span>,
+</span></span><span style="display:flex;"><span>			Center = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>		});
+</span></span><span style="display:flex;"><span>	});   
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="4">
+<li>Добавить UseElectron в Program.cs</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span>webBuilder.UseElectron(args).UseStartup&lt;Startup&gt;()
+</span></span></code></pre></div><h1 id="сборка">Сборка</h1>
+<p>Переходим в папку с веб приложением (csproj) и запускаем</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span>electronize <span style="color:#66d9ef">init</span>
+</span></span></code></pre></div><p>или</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span>electronize build /target win
+</span></span></code></pre></div><p>Подробнее можно прочитать 
+<a href="https://github.com/ElectronNET/Electron.NET/#-build" target="_blank">тут</a></p>
+<h1 id="запуск-приложения">Запуск приложения</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span>electronize start
+</span></span></code></pre></div><h1 id="ссылки">Ссылки</h1>
+<hr>
+<ul>
+<li>
+<a href="https://www.nuget.org/packages/ElectronNET.API/" target="_blank">ElectronNET.API (Nuget)</a></li>
+</ul>
+]]></content></item><item><title>Примитивизм</title><link>https://blowin.github.io/portfolio/posts/2022/05/%D0%BF%D1%80%D0%B8%D0%BC%D0%B8%D1%82%D0%B8%D0%B2%D0%B8%D0%B7%D0%BC/</link><pubDate>Thu, 12 May 2022 20:21:29 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/05/%D0%BF%D1%80%D0%B8%D0%BC%D0%B8%D1%82%D0%B8%D0%B2%D0%B8%D0%B7%D0%BC/</guid><description>На протяжении всего своего пути в программировании я сталкиваюсь с проблемой повсеместного использования примитивных типов, они повсюду.
 Хотя мы и имитируем реальный мир, но мы раз за разом используем примитивные типы, для всего многообразия понятий, которые мы моделируем в коде. Эти понятия имеют больше ограничений, чем тип, который мы используем. Чтобы решить эту проблему, существует такое понятие как Value Object, оно отображает конкретное понятие с инкапсулированной логикой.
 Что не так с примитивами?</description><content type="html"><![CDATA[<p>На протяжении всего своего пути в программировании я сталкиваюсь с проблемой повсеместного использования примитивных типов, они повсюду.</p>
 <p>Хотя мы и имитируем реальный мир, но мы раз за разом используем примитивные типы, для всего многообразия понятий, которые мы моделируем в коде. Эти понятия имеют больше ограничений, чем тип, который мы используем. Чтобы решить эту проблему, существует такое понятие как 
