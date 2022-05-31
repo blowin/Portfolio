@@ -22,8 +22,8 @@ tags:
 dotnet tool install --global electronNet.cli
 ```
 
-1. Установить nuget пакет [ElectronNET.API](https://www.nuget.org/packages/ElectronNET.API/)
-2. Добавить в Startup создание окна
+2. Установить nuget пакет [ElectronNET.API](https://www.nuget.org/packages/ElectronNET.API/)
+3. Добавить в Startup создание окна
 
 ```csharp
 if (HybridSupport.IsElectronActive)
