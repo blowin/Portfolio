@@ -39,7 +39,7 @@ aliases = ["about-ru","about","contact"]
 
   - **Домен проекта:** Здравоохронение
   
-      **Технологии:** WCF, ADO Net, WinForms, DevExpess, MSSQL, TFS, gRPC, nodejs
+      **Технологии:** WCF, ADO Net, WinForms, DevExpess, MSSQL, TFS, gRPC, nodejs, docker
 
   - **Домен проекта:** Логистика
 
