@@ -1,7 +1,7 @@
 ---
 title: "Объективная значимость"
 date: 2022-06-22T12:15:01+04:00
-draft: true
+draft: false
 toc: false
 categories: ["programming", "csharp", "ru"]
 images:
