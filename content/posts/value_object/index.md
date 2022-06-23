@@ -14,7 +14,7 @@ tags:
 > Вот так и впадают в заблуждение — уменьшая значимость важных вещей.
 > 
 > *Настоящий детектив*
-Р
+
 # Введение
 
 Сегодня поговорим о таком понятии как 'Value Object'. VO часто используется в [Domain Driven Design (DDD)](https://en.wikipedia.org/wiki/Domain-driven_design).
