@@ -1,6 +1,6 @@
 [
     {
-        "Name": "LinqMeta",
+        "Name": "Linq Meta",
         "Url": "https://github.com/blowin/LinqMeta",
         "Description": "Более производительная версия LINQ",
         "Technologies": [
@@ -8,15 +8,16 @@
         ]
     },
     {
-        "Name": "WordProcessor",
-        "Url": "https://github.com/blowin/WordProcessor",
-        "Description": "Небольшая программа для манипуляции с текстом. Позволяет заменить буквы на прочерк, перемешать слова. Удобно для составления домашнего задания при изучении языка.",
+        "Name": "Rss Detect",
+        "Url": "https://github.com/blowin/rss",
+        "Description": "Поиска rss-каналов на сайте",
         "Technologies": [
-            "C#"
+            "C#",
+            "WinForms"
         ]
     },
     {
-        "Name": "CleanCode",
+        "Name": "Clean Code",
         "Url": "https://github.com/blowin/BlowinCleanCode",
         "Description": "Roslyn анализатор кода",
         "Technologies": [
@@ -27,6 +28,14 @@
         "Name": "Required",
         "Url": "https://github.com/blowin/Blowin.Required",
         "Description": "Roslyn анализатор кода. Реализация proposal'а 'Required Properties' https://github.com/dotnet/csharplang/issues/3630",
+        "Technologies": [
+            "C#"
+        ]
+    },
+    {
+        "Name": "WordProcessor",
+        "Url": "https://github.com/blowin/WordProcessor",
+        "Description": "Небольшая программа для манипуляции с текстом. Позволяет заменить буквы на прочерк, перемешать слова. Удобно для составления домашнего задания при изучении языка.",
         "Technologies": [
             "C#"
         ]
