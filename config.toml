@@ -74,6 +74,10 @@ layoutDir    = "layouts"
     name = "instagram"
     url  = "https://www.instagram.com/idsisdead/"
 
+  [[params.social]]
+    name = "music"
+    url  = "https://music.yandex.ru/artist/14395105"
+
 [languages]
   [languages.ru]
     title = "Сущевский Дмитрий"

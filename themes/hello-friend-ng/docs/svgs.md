@@ -80,3 +80,4 @@
 - [xmpp](https://simpleicons.org/?q=xmpp)
 - [ycombinator](https://simpleicons.org/?q=ycombinator)
 - [youtube](https://simpleicons.org/?q=youtube)
+- [music](https://simpleicons.org/?q=track)
