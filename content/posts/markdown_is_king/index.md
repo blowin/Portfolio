@@ -1,7 +1,7 @@
 ---
 title: "Markdown is king"
 date: 2022-08-15T20:18:05+03:00
-draft: true
+draft: false
 toc: false
 categories: ["programming", "ru", "documentation"]
 images:
