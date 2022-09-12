@@ -1,4 +1,167 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/portfolio/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/portfolio/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Оценка сложности кода</title><link>https://blowin.github.io/portfolio/posts/2022/09/%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D1%81%D0%BB%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%BA%D0%BE%D0%B4%D0%B0/</link><pubDate>Fri, 09 Sep 2022 17:10:31 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/09/%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D1%81%D0%BB%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%BA%D0%BE%D0%B4%D0%B0/</guid><description>Упрощенчество — непонимание сложностей.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/portfolio/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/portfolio/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Умная ути-ути-утилизация</title><link>https://blowin.github.io/portfolio/posts/2022/09/%D1%83%D0%BC%D0%BD%D0%B0%D1%8F-%D1%83%D1%82%D0%B8-%D1%83%D1%82%D0%B8-%D1%83%D1%82%D0%B8%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F/</link><pubDate>Mon, 12 Sep 2022 07:09:06 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/09/%D1%83%D0%BC%D0%BD%D0%B0%D1%8F-%D1%83%D1%82%D0%B8-%D1%83%D1%82%D0%B8-%D1%83%D1%82%D0%B8%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F/</guid><description>После очистки нашей истории от лжи не обязательно должна остаться только правда, порой вообще ничего не остается.
+Станислав Ежи Лец
+Введение Сегодня поговорим об управлении ресурами, а именно о методе Dispose и библиотеке Lifetime от Jetbrains, которая помогает управлять утилизацией ресурсов.
+IDisposable - Интерфейс, который предоставляет собой механизм для освобождения неуправляемых ресурсов (согласно MSDN).
+Очень простое определение, за которым скрывается большое количество нюансов, но об этом далее.
+Проблема Так что же не так с интерфейсом IDisposable?</description><content type="html"><![CDATA[<blockquote>
+<p>После очистки нашей истории от лжи не обязательно должна остаться только правда, порой вообще ничего не остается.</p>
+<p><em>Станислав Ежи Лец</em></p>
+</blockquote>
+<h1 id="введение">Введение</h1>
+<p>Сегодня поговорим об управлении ресурами, а именно о методе Dispose и библиотеке 
+<a href="https://github.com/JetBrains/rd" target="_blank">Lifetime</a> от Jetbrains, которая помогает управлять утилизацией ресурсов.</p>
+<p>IDisposable - Интерфейс, который предоставляет собой механизм для освобождения неуправляемых ресурсов (согласно MSDN).</p>
+<p>Очень простое определение, за которым скрывается большое количество нюансов, но об этом далее.</p>
+<h1 id="проблема">Проблема</h1>
+<p>Так что же не так с интерфейсом 
+<a href="https://docs.microsoft.com/ru-ru/dotnet/api/system.idisposable?view=net-6.0" target="_blank">IDisposable</a>?</p>
+<p>Сталкивались ли вы с вопросами на собеседовании &ldquo;Как корректно реализовать dispose&rdquo;? Ответили ли вы на него правильно с первого раза?</p>
+<ol>
+<li>Сложность правильной реализации, это настолько не тривиальная задача, что у 
+<a href="https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose" target="_blank">Microsoft есть отдельная статья</a> на эту тему. С добавлением 
+<a href="https://docs.microsoft.com/en-us/dotnet/api/system.iasyncdisposable?view=net-6.0" target="_blank">IAsyncDisposable</a> ситуация стала только запутаннее.</li>
+<li>Когда нам передаётся объект, который реализует IDisposable, нам тоже нужно реализовать IDisposable интерфейс и вызвать соответствующий метод объекта, но к сожалению мы не всегда должны это делать. Например, жизненным циклом объекта должна управлять используемая библиотека(привет DI) или же кто-то на уровень выше (привет Parent form из WinForms).</li>
+<li>Как определить, можем ли мы вызвать Dispose на объекте. Это является проблемой настолько, что в 
+<a href="https://docs.microsoft.com/en-us/dotnet/api/system.io.streamreader.-ctor?view=net-6.0#system-io-streamreader-ctor%28system-string-system-boolean%29" target="_blank">некоторых классах стандартной библиотеки есть даже специальный флаг</a>, который нужно установить в true, если класс не должен вызвать Dispose у передаваемого объекта (см конструктор с <em>leaveOpen</em>).</li>
+<li>Мы должны знать что тип, который нам приходит в конструкторе реализует IDiposable.</li>
+<li>Метод Dispose, как правило, располагают в конце класа, что влечет за собой возможность забыть добавить вызов Dispose для нового объекта переданного в конструктор.</li>
+</ol>
+<h1 id="решение">Решение</h1>
+<p>В Jetbrains придумали изящное решение этой проблемы с помощью инвертирования зависимостей. Теперь за уничтожение объекта отвечает не наш объект, а кто-то на уровень выше, объект только сообщает ему как это сделать.</p>
+<p>На Github есть исходный код библиотеки 
+<a href="https://github.com/JetBrains/rd" target="_blank">RD</a>, которая содержит реализацию Lifetime.</p>
+<p>Есть реализации для:</p>
+<ul>
+<li>
+<a href="https://github.com/JetBrains/rd/tree/master/rd-cpp" target="_blank">C++</a>.</li>
+<li>
+<a href="https://github.com/JetBrains/rd/tree/master/rd-net" target="_blank">C#</a>.</li>
+<li>
+<a href="https://github.com/JetBrains/rd/tree/master/rd-kt" target="_blank">Kotlin</a>.</li>
+</ul>
+<p>Данных подход широко используется в 
+<a href="https://www.jetbrains.com/help/resharper/sdk/welcome.html" target="_blank">ReSharper Platform SDK</a>, в его документации можно посмотреть более подробное описание, а я в свою очередь приведу пару примеров.</p>
+<h1 id="примеры">Примеры</h1>
+<p>Давайте сравним старый подход с Dispose и альтернативный вариант от Jetbrains.</p>
+<h2 id="версия-с-dispose">Версия с Dispose</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Service1</span> : IDisposable
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Dispose() =&gt; Console.WriteLine(<span style="color:#e6db74">&#34;Dispose Service1&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Service2</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">event</span> Action? ItemAdded;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Root</span> : IDisposable
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Service1 <span style="color:#ae81ff">_</span>service1;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Service2 <span style="color:#ae81ff">_</span>service2;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Root(Service1 service1, Service2 service2)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>service1 = service1;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>service2 = service2;
+</span></span><span style="display:flex;"><span>        service2.ItemAdded += Service2OnItemAdded;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Dispose()
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>service2.ItemAdded -= Service2OnItemAdded;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>service1.Dispose();
+</span></span><span style="display:flex;"><span>        Console.WriteLine(<span style="color:#e6db74">&#34;Dispose Root&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Main</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">using</span> var root = <span style="color:#66d9ef">new</span> Root(<span style="color:#66d9ef">new</span> Service1(), <span style="color:#66d9ef">new</span> Service2());
+</span></span><span style="display:flex;"><span>root.Run();
+</span></span></code></pre></div><h2 id="добавим-lifetime">Добавим Lifetime</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#75715e">// Не реализуем интерфейс IDisposable</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Service1</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Указываем, что по окончания жизни Lifetime, нужно очистить ресурсы</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Service1(Lifetime lifetime) =&gt; lifetime.OnTermination(() =&gt; Console.WriteLine(<span style="color:#e6db74">&#34;Dispose Service1&#34;</span>));
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Service2 без изменений</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Не реализуем интерфейс IDisposable</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Root</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Service1 <span style="color:#ae81ff">_</span>service1;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Service2 <span style="color:#ae81ff">_</span>service2;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Root(Lifetime lifetime, Service1 service1, Service2 service2)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>service1 = service1;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>service2 = service2;
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Указываем, что хотим подписаться и сразу же указываем, что делать по окончанию жизни.</span>
+</span></span><span style="display:flex;"><span>        lifetime.Bracket(() =&gt; service2.ItemAdded += Service2OnItemAdded,
+</span></span><span style="display:flex;"><span>            () =&gt; service2.ItemAdded -= Service2OnItemAdded);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Указываем, что нужно делать с текущим объектом по окончанию Lifetime</span>
+</span></span><span style="display:flex;"><span>        lifetime.OnTermination(() =&gt; Console.WriteLine(<span style="color:#e6db74">&#34;Dispose Root&#34;</span>));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Main</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Создаём корневой LifetimeDefinition, а от него создаём Lifetime</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">using</span> var lifetimeDef = <span style="color:#66d9ef">new</span> LifetimeDefinition();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> root = <span style="color:#66d9ef">new</span> Root(lifetimeDef.Lifetime, <span style="color:#66d9ef">new</span> Service1(lifetimeDef.Lifetime), <span style="color:#66d9ef">new</span> Service2());
+</span></span><span style="display:flex;"><span>root.Run();
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// при вызове Dispose на LifetimeDefinition, будут уничтожено все дерево объектов, причём в правильном порядке.</span>
+</span></span></code></pre></div><h2 id="дочерние-lifetimedefinition">Дочерние LifetimeDefinition</h2>
+<p>В нашем приложении могут быть сущности с более коротким временем жизни, это как Scope из DI, чтобы такое осуществить, можно создавать дочерние LifetimeDefinition, которые могут завершиться раньше, чем родительский Lifetime.</p>
+<p>Обратите внимание, что в таком случае, наш Service1 будет реализовывать IDisposable и Dispose нужно будет вызвать снаружи, либо создать LifetimeDefinition на уровень выше и передавать его Lifetime в Service1.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Service1</span> : IDisposable
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> LifetimeDefinition <span style="color:#ae81ff">_l</span>ifetimeDefinition;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Service1(Lifetime lifetime)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_l</span>ifetimeDefinition = <span style="color:#66d9ef">new</span> LifetimeDefinition(lifetime);
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_l</span>ifetimeDefinition.Lifetime.OnTermination(() =&gt; Console.WriteLine(<span style="color:#e6db74">&#34;Dispose Service1&#34;</span>));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Dispose() =&gt; <span style="color:#ae81ff">_l</span>ifetimeDefinition.Dispose();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>С помощью LifetimeDefinition реализуется древовидная структура.</p>
+<p>В приложении каждый компонент имеет своё время жизни, например, есть главный Lifetime (всего приложения), если он схлопывается, то всё должно утилизироваться. От него могут создаваться дочерние LifetimeDefinition, например, при открытии окна, которое в свою очередь может внутри породить новый LifetimeDefinition.</p>
+<p>Если закрывается родительский LifetimeDefinition, то все дочерние компоненты будут утилизированы, но если закрывается дочерний LifetimeDefinition, то это никак не влияет на родительский.</p>
+<h1 id="итог">Итог</h1>
+<p>С помощью Lifetime можно решить следующие проблемы:</p>
+<ul>
+<li>Разделение конструктора и метода Dispose.</li>
+<li>Теперь тип явно декларирует в конструкторе, что ему необходимо утилизировать свои ресурсы.</li>
+<li>Нет необходимости знать нужно ли утилизировать конкретный объект. Каждый объект сам несет ответственность за это.</li>
+</ul>
+<p>Безусловно в этом подходе есть и минусы:</p>
+<ul>
+<li>Поддержка в DI.</li>
+</ul>
+<p>Этот минус может стать большой проблемой для внедрения этого подхода в проект. Jetbrains научила использовать Lifetime свой DI, но к сожалению DI от Jetbrains не Open Source.</p>
+<h1 id="ссылки">Ссылки</h1>
+<ul>
+<li>
+<a href="https://github.com/JetBrains/rd" target="_blank">Lifetime (Github)</a></li>
+<li>
+<a href="https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose" target="_blank">Implementating dispose (MSDN)</a></li>
+<li>
+<a href="https://docs.microsoft.com/en-us/dotnet/api/system.iasyncdisposable?view=net-6.0" target="_blank">IAsyncDisposable (MSDN)</a></li>
+<li>
+<a href="https://docs.microsoft.com/ru-ru/dotnet/api/system.idisposable?view=net-6.0" target="_blank">IDisposable (MSDN)</a></li>
+</ul>
+<h1 id="доклады">Доклады</h1>
+<ul>
+<li>
+<a href="https://www.youtube.com/watch?v=Sq_h5bVWJ0k" target="_blank">Дмитрий Иванов «Библиотека JetBrains.Lifetimes — новый взгляд на реактивное программирование» (DotNetRu)</a></li>
+<li>
+<a href="https://www.youtube.com/watch?v=cfPEN5_6UtI" target="_blank">Дмитрий Иванов — Реактивное многопроцессное взаимодействие: JetBrains Rider Framework (DotNext)</a></li>
+<li>
+<a href="https://www.youtube.com/watch?v=F5oOYKTFpcQ&amp;list=PLBwwJL9lzKMbozGTh4k1VC67O5fLezyyB&amp;index=6" target="_blank">Станислав Сидристый «Шаблон Lifetime: для сложного Disposing» (DotNetRu)</a></li>
+</ul>
+]]></content></item><item><title>Оценка сложности кода</title><link>https://blowin.github.io/portfolio/posts/2022/09/%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D1%81%D0%BB%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%BA%D0%BE%D0%B4%D0%B0/</link><pubDate>Fri, 09 Sep 2022 17:10:31 +0300</pubDate><guid>https://blowin.github.io/portfolio/posts/2022/09/%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D1%81%D0%BB%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D0%B8-%D0%BA%D0%BE%D0%B4%D0%B0/</guid><description>Упрощенчество — непонимание сложностей.
 Простота — способность разрешать сложности.
 Эрик-Эмманюэль Шмитт
 Введение Сегодня хотелось бы обсудить сложность кода и один из способов объективного подсчёта сложности. Мы не будем считать количество строк в метода, хотя этот параметр явно не стоит упускать из виду. Сегодня мы поговорим о Cognitive complexity
