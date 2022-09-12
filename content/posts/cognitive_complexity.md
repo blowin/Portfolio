@@ -3,7 +3,7 @@ title: "Оценка сложности кода"
 date: 2022-09-09T17:10:31+03:00
 draft: false
 toc: false
-categories: ["programming", "csharp", "ru"]
+categories: ["programming", "ru"]
 images:
 tags:
   - design
