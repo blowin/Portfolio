@@ -154,6 +154,24 @@ public class Service1 : IDisposable
 
 Если закрывается родительский LifetimeDefinition, то все дочерние компоненты будут утилизированы, но если закрывается дочерний LifetimeDefinition, то это никак не влияет на родительский. 
 
+## Добавляем Lifetime в DI
+
+Существует одна важная сложность, повсеместно в наших проектах используются DI контейнеры, но они не умеют работать с Lifetime из коробки. Jetbrains научила использовать Lifetime свой DI, но к сожалению DI от Jetbrains не Open Source.
+
+Вот мой вариант использования Lifetime в DI контейнере.
+
+```csharp
+using JetBrains.Lifetimes;
+using Microsoft.Extensions.DependencyInjection;
+
+public static class ServiceCollectionLifetimeExt
+{
+    public static IServiceCollection AddLifetime(this IServiceCollection self) => self.AddScoped<LifetimeDefinition>();
+}
+```
+
+С таким подходом достаточно сделать один Root scope, а от него создавать дочерние и в каждом области будет свой LifetimeDefinition, который будет уничтожен по окончанию этого scope.
+
 # Итог
 
 С помощью Lifetime можно решить следующие проблемы:
@@ -164,8 +182,7 @@ public class Service1 : IDisposable
 
 Безусловно в этом подходе есть и минусы:
 - Поддержка в DI.
-  
-Этот минус может стать большой проблемой для внедрения этого подхода в проект. Jetbrains научила использовать Lifetime свой DI, но к сожалению DI от Jetbrains не Open Source. 
+- Новый подход, который нужно изучать команде.
 
 # Ссылки
 
