@@ -129,6 +129,17 @@ IDisposable - Интерфейс, который предоставляет со
 </span></span></code></pre></div><p>С помощью LifetimeDefinition реализуется древовидная структура.</p>
 <p>В приложении каждый компонент имеет своё время жизни, например, есть главный Lifetime (всего приложения), если он схлопывается, то всё должно утилизироваться. От него могут создаваться дочерние LifetimeDefinition, например, при открытии окна, которое в свою очередь может внутри породить новый LifetimeDefinition.</p>
 <p>Если закрывается родительский LifetimeDefinition, то все дочерние компоненты будут утилизированы, но если закрывается дочерний LifetimeDefinition, то это никак не влияет на родительский.</p>
+<h2 id="добавляем-lifetime-в-di">Добавляем Lifetime в DI</h2>
+<p>Существует одна важная сложность, повсеместно в наших проектах используются DI контейнеры, но они не умеют работать с Lifetime из коробки. Jetbrains научила использовать Lifetime свой DI, но к сожалению DI от Jetbrains не Open Source.</p>
+<p>Вот мой вариант использования Lifetime в DI контейнере.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">using</span> JetBrains.Lifetimes;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">using</span> Microsoft.Extensions.DependencyInjection;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ServiceCollectionLifetimeExt</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> IServiceCollection AddLifetime(<span style="color:#66d9ef">this</span> IServiceCollection self) =&gt; self.AddScoped&lt;LifetimeDefinition&gt;();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>С таким подходом достаточно сделать один Root scope, а от него создавать дочерние и в каждом области будет свой LifetimeDefinition, который будет уничтожен по окончанию этого scope.</p>
 <h1 id="итог">Итог</h1>
 <p>С помощью Lifetime можно решить следующие проблемы:</p>
 <ul>
@@ -139,8 +150,8 @@ IDisposable - Интерфейс, который предоставляет со
 <p>Безусловно в этом подходе есть и минусы:</p>
 <ul>
 <li>Поддержка в DI.</li>
+<li>Новый подход, который нужно изучать команде.</li>
 </ul>
-<p>Этот минус может стать большой проблемой для внедрения этого подхода в проект. Jetbrains научила использовать Lifetime свой DI, но к сожалению DI от Jetbrains не Open Source.</p>
 <h1 id="ссылки">Ссылки</h1>
 <ul>
 <li>
