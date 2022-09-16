@@ -242,7 +242,7 @@ IDisposable - Интерфейс, который предоставляет со
 <ul>
 <li>Ведения заметок</li>
 <li>Генерации сайтов, 
-<a href="https://github.com/blowin/portfolio" target="_blank">как этот</a></li>
+<a href="https://github.com/blowin/blog" target="_blank">как этот</a></li>
 <li>Базы знаний 
 <a href="https://obsidian.md/" target="_blank">obsidian</a></li>
 </ul>
