@@ -58,8 +58,8 @@
         ]
     },
     {
-        "Name": "Портфолио",
-        "Url": "https://github.com/blowin/portfolio",
+        "Name": "Блог",
+        "Url": "https://github.com/blowin/blog",
         "Description": "Этот сайт ☺",
         "Technologies": [
             "Hugo"
