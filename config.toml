@@ -1,4 +1,4 @@
-baseURL = 'https://blowin.github.io/portfolio/'
+baseURL = 'https://blowin.github.io/blog/'
 languageCode = 'ru'
 defaultContentLanguage = 'ru'
 defaultContentLang = "ru"
