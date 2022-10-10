@@ -30,6 +30,8 @@ Unit тестирование - процесс в программировани
 
 # Проблема
 
+Возьмём слегка надуманный пример, в реальной жизни вы вряд ли будете тестировать репозиторий, но вместо его может быть, например, получение курсов валют из сети. Цель статьи - показать проблемы и возможные способы их решения.
+
 Предположим, что у нас есть репозиторий, который умеет сохранять и загружать пользователей в файл.
 
 ```csharp
@@ -339,6 +341,37 @@ public void Delete(string path) => File.Delete(path);
 public void Delete(string path) {}
 ```
 
+## DeleteFileScope
+
+Чтобы тесты были лаконичнее, напишем **DeleteFileScope**, который будет удалять файл по окончанию теста
+
+```csharp
+public readonly struct DeleteFileScope : IDisposable
+{
+    private readonly IFileProvider _fileProvider;
+    private readonly string _path;
+
+    public DeleteFileScope(IFileProvider fileProvider, string path)
+    {
+        _fileProvider = fileProvider;
+        _path = path;
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _fileProvider.Delete(_path);
+        }
+        catch 
+        {
+        }
+    }
+}
+```
+
+## Меняем тесты
+
 Доработаем наши тесты, для этого обернем весь код в try finally, чтобы удалять файл по окончанию теста. Приведу пример теста метода **Save**, изменения во втором будут аналогичны:
 
 ```csharp
@@ -348,27 +381,17 @@ public void Save(string expect, List<User> items)
 {
     // Arrange
     const string filePath = "tmp.json";
-
     var fileProvider = new MemoryFileProvider();
-    try
-    {
-        var repository = new UserRepository(filePath, fileProvider);
+    var repository = new UserRepository(filePath, fileProvider);
 
+    using (new DeleteFileScope(fileProvider, filePath))
+    {
         // Act
         repository.Save(items);
         var json = fileProvider.ToJson(filePath);
     
         // Assert
         Assert.Equal(expect, json);
-    }
-    finally
-    {
-        try
-        {
-            // Удаляем файл по окочанию теста
-            fileProvider.Delete(filePath);
-        }
-        catch {}
     }
 }
 ```
