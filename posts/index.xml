@@ -13,6 +13,7 @@
 <p>Я бы дал следующее определение для unit тестирования:</p>
 <p>Unit тестирование - процесс в программировании, позволяющий проверить на корректность отдельные модули исходного кода программы, который работает в оперативной памяти и не взаимодействует с внешними источниками (файловая система, база данных, сеть и т.д).</p>
 <h1 id="проблема">Проблема</h1>
+<p>Возьмём слегка надуманный пример, в реальной жизни вы вряд ли будете тестировать репозиторий, но вместо его может быть, например, получение курсов валют из сети. Цель статьи - показать проблемы и возможные способы их решения.</p>
 <p>Предположим, что у нас есть репозиторий, который умеет сохранять и загружать пользователей в файл.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserRepository</span>
 </span></span><span style="display:flex;"><span>{
@@ -259,34 +260,49 @@
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Delete(<span style="color:#66d9ef">string</span> path) =&gt; File.Delete(path);
 </span></span></code></pre></div><p>Добавим метод в <strong>MemoryFileProvider</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Delete(<span style="color:#66d9ef">string</span> path) {}
-</span></span></code></pre></div><p>Доработаем наши тесты, для этого обернем весь код в try finally, чтобы удалять файл по окончанию теста. Приведу пример теста метода <strong>Save</strong>, изменения во втором будут аналогичны:</p>
+</span></span></code></pre></div><h2 id="deletefilescope">DeleteFileScope</h2>
+<p>Чтобы тесты были лаконичнее, напишем <strong>DeleteFileScope</strong>, который будет удалять файл по окончанию теста</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">DeleteFileScope</span> : IDisposable
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IFileProvider <span style="color:#ae81ff">_f</span>ileProvider;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">string</span> <span style="color:#ae81ff">_</span>path;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> DeleteFileScope(IFileProvider fileProvider, <span style="color:#66d9ef">string</span> path)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_f</span>ileProvider = fileProvider;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>path = path;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Dispose()
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#ae81ff">_f</span>ileProvider.Delete(<span style="color:#ae81ff">_</span>path);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">catch</span> 
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="меняем-тесты">Меняем тесты</h2>
+<p>Доработаем наши тесты, для этого обернем весь код в try finally, чтобы удалять файл по окончанию теста. Приведу пример теста метода <strong>Save</strong>, изменения во втором будут аналогичны:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#a6e22e">[Theory]</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">[MemberData(nameof(TestData))]</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Save(<span style="color:#66d9ef">string</span> expect, List&lt;User&gt; items)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Arrange</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">string</span> filePath = <span style="color:#e6db74">&#34;tmp.json&#34;</span>;
-</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> fileProvider = <span style="color:#66d9ef">new</span> MemoryFileProvider();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> repository = <span style="color:#66d9ef">new</span> UserRepository(filePath, fileProvider);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> repository = <span style="color:#66d9ef">new</span> UserRepository(filePath, fileProvider);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">using</span> (<span style="color:#66d9ef">new</span> DeleteFileScope(fileProvider, filePath))
+</span></span><span style="display:flex;"><span>    {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Act</span>
 </span></span><span style="display:flex;"><span>        repository.Save(items);
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> json = fileProvider.ToJson(filePath);
 </span></span><span style="display:flex;"><span>    
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Assert</span>
 </span></span><span style="display:flex;"><span>        Assert.Equal(expect, json);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">finally</span>
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Удаляем файл по окочанию теста</span>
-</span></span><span style="display:flex;"><span>            fileProvider.Delete(filePath);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">catch</span> {}
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Теперь мы можем заменить <strong>new MemoryFileProvider()</strong> на <strong>new PhysicianFileProvider()</strong>, тогда тест будет тестировать взаимодействие с файловой системой. При желании мы можем передавать нужную реализацию <strong>IFileProvider</strong> в качестве аргумента теста.</p>
