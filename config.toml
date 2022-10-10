@@ -1,4 +1,4 @@
-baseURL = 'https://blowin.github.io/portfolio/'
+baseURL = 'https://blowin.github.io/blog/'
 languageCode = 'ru'
 defaultContentLanguage = 'ru'
 defaultContentLang = "ru"
@@ -74,6 +74,10 @@ layoutDir    = "layouts"
     name = "instagram"
     url  = "https://www.instagram.com/idsisdead/"
 
+  [[params.social]]
+    name = "music"
+    url  = "https://music.yandex.ru/artist/14395105"
+
 [languages]
   [languages.ru]
     title = "Сущевский Дмитрий"
@@ -84,7 +88,7 @@ layoutDir    = "layouts"
 
     [languages.ru.params.logo]
       logoText = "blowin"
-      logoHomeLink = "/portfolio"
+      logoHomeLink = "/blog"
 
 
 [menu]
