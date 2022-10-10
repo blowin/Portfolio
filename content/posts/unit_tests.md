@@ -318,28 +318,7 @@ public void GetAll(string initialValue, List<User> expect)
 
 # Интеграционное тестирование
 
-С существующей реализацией можно легко написать интеграционные тесты на наш репозиторий. Для этого добавим 1 метод в **IFileProvider**
-
-```csharp
-public interface IFileProvider
-{
-    Stream Open(string path, FileMode mode);
-
-    void Delete(string path);
-}
-```
-
-Добавим метод в **PhysicianFileProvider**
-
-```csharp
-public void Delete(string path) => File.Delete(path);
-```
-
-Добавим метод в **MemoryFileProvider**
-
-```csharp
-public void Delete(string path) {}
-```
+С существующей реализацией можно легко написать интеграционные тесты на наш репозиторий. 
 
 ## DeleteFileScope
 
@@ -359,9 +338,12 @@ public readonly struct DeleteFileScope : IDisposable
 
     public void Dispose()
     {
+        if(_fileProvider is not PhysicianFileProvider)
+            return;
+
         try
         {
-            _fileProvider.Delete(_path);
+            File.Delete(_path);
         }
         catch 
         {
