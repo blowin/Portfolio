@@ -1,13 +1,13 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/blog/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/blog/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Unit testing</title><link>https://blowin.github.io/blog/posts/2022/10/unit-testing/</link><pubDate>Sun, 09 Oct 2022 22:18:41 +0400</pubDate><guid>https://blowin.github.io/blog/posts/2022/10/unit-testing/</guid><description>Количество дураков уменьшается, но качество их растет.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Блог on Сущевский Дмитрий</title><link>https://blowin.github.io/blog/posts/</link><description>Recent content in Блог on Сущевский Дмитрий</description><generator>Hugo -- gohugo.io</generator><language>ru</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blowin.github.io/blog/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Рефакторинг кода для unit тестирования</title><link>https://blowin.github.io/blog/posts/2022/10/%D1%80%D0%B5%D1%84%D0%B0%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D0%BD%D0%B3-%D0%BA%D0%BE%D0%B4%D0%B0-%D0%B4%D0%BB%D1%8F-unit-%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F/</link><pubDate>Sun, 09 Oct 2022 22:18:41 +0400</pubDate><guid>https://blowin.github.io/blog/posts/2022/10/%D1%80%D0%B5%D1%84%D0%B0%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D0%BD%D0%B3-%D0%BA%D0%BE%D0%B4%D0%B0-%D0%B4%D0%BB%D1%8F-unit-%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F/</guid><description>Количество дураков уменьшается, но качество их растет.
 Михаил Генин
-Цель Цель статьи - показать как можно решить проблему при написании юнит тестов, когда в коде есть зависимости на внешний ресурс (база данных/сеть/файловая система). Поэтому постарался сделать её более практической.
+Цель Цель статьи - показать как можно решить проблему при написании юнит тестов, когда в коде есть зависимости на внешний ресурс (база данных/сеть/файловая система).
 Введение Для начала разберемся что же такое unit тестирование. Cогласно википедии:
 Модульное тестирование, иногда блочное тестирование или юнит-тестирование (англ. unit testing) — процесс в программировании, позволяющий проверить на корректность отдельные модули исходного кода программы, наборы из одного или более программных модулей вместе с соответствующими управляющими данными, процедурами использования и обработки.</description><content type="html"><![CDATA[<blockquote>
 <p>Количество дураков уменьшается, но качество их растет.</p>
 <p><em>Михаил Генин</em></p>
 </blockquote>
 <h1 id="цель">Цель</h1>
-<p>Цель статьи - показать как можно решить проблему при написании юнит тестов, когда в коде есть зависимости на внешний ресурс (база данных/сеть/файловая система). Поэтому постарался сделать её более практической.</p>
+<p>Цель статьи - показать как можно решить проблему при написании юнит тестов, когда в коде есть зависимости на внешний ресурс (база данных/сеть/файловая система).</p>
 <h1 id="введение">Введение</h1>
 <p>Для начала разберемся что же такое unit тестирование. Cогласно википедии:</p>
 <p>Модульное тестирование, иногда блочное тестирование или юнит-тестирование (англ. unit testing) — процесс в программировании, позволяющий проверить на корректность отдельные модули исходного кода программы, наборы из одного или более программных модулей вместе с соответствующими управляющими данными, процедурами использования и обработки.</p>
@@ -15,292 +15,207 @@
 <p>Я бы дал следующее определение для unit тестирования:</p>
 <p>Unit тестирование - процесс в программировании, позволяющий проверить на корректность отдельные модули исходного кода программы, который работает в оперативной памяти и не взаимодействует с внешними источниками (файловая система, база данных, сеть и т.д).</p>
 <h1 id="проблема">Проблема</h1>
-<p>Представим, что необходимо протестировать функционал генерирования отчётов по активности пользователя.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserRepository</span>
+<p>Необходимо протестировать алгоритм группировки файлов по расширению.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">FileGrouper</span>
 </span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">string</span> <span style="color:#ae81ff">_</span>path;
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">readonly</span> JsonSerializerOptions Op = <span style="color:#66d9ef">new</span>()
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        WriteIndented = <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">string</span> <span style="color:#ae81ff">_f</span>olderPath;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> UserRepository(<span style="color:#66d9ef">string</span> path)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>path = path ?? <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> ArgumentNullException(nameof(path));
-</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> FileGrouper(<span style="color:#66d9ef">string</span> folderPath) =&gt; <span style="color:#ae81ff">_f</span>olderPath = folderPath;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> List&lt;User&gt; GetAll()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> ByExtension()
 </span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">using</span> var stream = File.Open(<span style="color:#ae81ff">_</span>path, FileMode.Open);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> itemList = JsonSerializer.Deserialize&lt;List&lt;User&gt;&gt;(stream, Op);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> itemList ?? <span style="color:#66d9ef">new</span> List&lt;User&gt;();
-</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> groupFiles = Directory.GetFiles(<span style="color:#ae81ff">_f</span>olderPath)
+</span></span><span style="display:flex;"><span>            .Select(fullFileName =&gt; <span style="color:#66d9ef">new</span>
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                FullFileName = fullFileName,
+</span></span><span style="display:flex;"><span>                FileName = Path.GetFileName(fullFileName),
+</span></span><span style="display:flex;"><span>                Extension = Path.GetExtension(fullFileName)
+</span></span><span style="display:flex;"><span>            })
+</span></span><span style="display:flex;"><span>            .Where(fileInfo =&gt; !<span style="color:#66d9ef">string</span>.IsNullOrEmpty(fileInfo.Extension))
+</span></span><span style="display:flex;"><span>            .ToLookup(arg =&gt; arg.Extension);
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Save(List&lt;User&gt; items)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">using</span> var stream = File.Open(<span style="color:#ae81ff">_</span>path, FileMode.Create);
-</span></span><span style="display:flex;"><span>        JsonSerializer.Serialize(stream, items, Op);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">foreach</span> (<span style="color:#66d9ef">var</span> groupFile <span style="color:#66d9ef">in</span> groupFiles)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> newFolder = Path.Combine(<span style="color:#ae81ff">_f</span>olderPath, groupFile.Key);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (!Directory.Exists(newFolder))
+</span></span><span style="display:flex;"><span>                Directory.CreateDirectory(newFolder);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">foreach</span> (<span style="color:#66d9ef">var</span> file <span style="color:#66d9ef">in</span> groupFile)
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">var</span> newFile = Path.Combine(newFolder, file.FileName);
+</span></span><span style="display:flex;"><span>                File.Move(file.FullFileName, newFile);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Модель пользователей выглядит следующим образом:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">record</span> <span style="color:#a6e22e">User</span>
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Guid Id { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> Name { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> DateTime BirthDate { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">    
-</span></span></span><span style="display:flex;"><span><span style="color:#a6e22e">    [JsonConstructor]</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> User(Guid id, <span style="color:#66d9ef">string</span> name, DateTime birthDate)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        Id = id;
-</span></span><span style="display:flex;"><span>        Name = name;
-</span></span><span style="display:flex;"><span>        BirthDate = birthDate;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>На данный момент мы не можем написать unit тесты на этот код, так как в нём есть зависимость от файловой системы.</p>
+</span></span></code></pre></div><p>На данный момент мы не можем написать unit тесты на этот код, так как в нём есть зависимость на файловую систему.</p>
 <h1 id="решение">Решение</h1>
 <p>Есть 2 основных способа избавиться от этой зависимости:</p>
 <ol>
-<li>Создать интерфейс для работы с файловой системой <strong>IFileProvider</strong>, в котором будут все необходимые операции.</li>
-<li>Создать базовый класс с абстрактным методом открытия файла, который будет возвращать <strong>Stream</strong>, а уже каждый наследник будет решать возвращать <strong>FileStream</strong>, <strong>MemoryStream</strong> или что-то ещё.</li>
+<li>Создать интерфейс для работы с файловой системой <strong>IFileSystem</strong>, в котором будут все необходимые операции.</li>
+<li>Создать базовый класс <strong>FileGrouperBase</strong> с абстрактными методами по обращению к файловой системе, а уже каждый наследник будет решать как их реализовать.</li>
 </ol>
-<p>Лично мне импонирует первый подход, так как в нашем случае он является более гибким и нам наверняка понадобится больше 1 метода для работы с файловой системой, и удобнее будет иметь для этого отдельный объект.</p>
-<h2 id="ifileprovider">IFileProvider</h2>
-<p>Давайте опишем <strong>IFileProvider</strong>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">IFileProvider</span>
+<p>Лично мне импонирует первый вариант, так как он является более гибким. Тем более, что нам необходимо больше 1 метода для работы с файловой системой, и удобнее будет иметь для этого отдельную сущность.</p>
+<h2 id="ifilesystem">IFileSystem</h2>
+<p>Давайте опишем <strong>IFileSystem</strong>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">IFileSystem</span>
 </span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    Stream Open(<span style="color:#66d9ef">string</span> path, FileMode mode);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">string</span>[] GetFiles(<span style="color:#66d9ef">string</span> directory);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">bool</span> DirectoryExists(<span style="color:#66d9ef">string</span> directory);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> CreateDirectory(<span style="color:#66d9ef">string</span> directory);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> MoveFile(<span style="color:#66d9ef">string</span> sourceFile, <span style="color:#66d9ef">string</span> destinationFile);
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Интерфейс будет очень прост - это 1 метод для открытия файла.</p>
-<p>Сразу же пишем реализацию для реальной файловой системы:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PhysicianFileProvider</span> : IFileProvider
+</span></span></code></pre></div><p>Сразу же пишем реализацию для реальной файловой системы:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PhysicianFileSystem</span> : IFileSystem
 </span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Stream Open(<span style="color:#66d9ef">string</span> path, FileMode mode) 
-</span></span><span style="display:flex;"><span>      =&gt; <span style="color:#66d9ef">new</span> FileStream(path, mode);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span>[] GetFiles(<span style="color:#66d9ef">string</span> directory) 
+</span></span><span style="display:flex;"><span>        =&gt; Directory.GetFiles(directory);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">bool</span> DirectoryExists(<span style="color:#66d9ef">string</span> directory) 
+</span></span><span style="display:flex;"><span>        =&gt; Directory.Exists(directory);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> CreateDirectory(<span style="color:#66d9ef">string</span> directory) 
+</span></span><span style="display:flex;"><span>        =&gt; Directory.CreateDirectory(directory);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> MoveFile(<span style="color:#66d9ef">string</span> sourceFile, <span style="color:#66d9ef">string</span> destinationFile) 
+</span></span><span style="display:flex;"><span>        =&gt; File.Move(sourceFile, destinationFile);
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h2 id="дорабатываем-репозиторий">Дорабатываем репозиторий</h2>
-<p>Изменения будут минимальными, заменяем 2 вызова <strong>File.Open</strong>, на вызов нашего провайдера.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserRepository</span>
+<p>Изменения будут минимальными, заменяем все статические вызовы <strong>File</strong> и <strong>Directory</strong> на вызовы нового объекта.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">FileGrouper</span>
 </span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">string</span> <span style="color:#ae81ff">_</span>path;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IFileProvider <span style="color:#ae81ff">_f</span>ileProvider;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">string</span> <span style="color:#ae81ff">_f</span>olderPath;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Добавили объект             ↓</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IFileSystem <span style="color:#ae81ff">_f</span>ileSystem;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">readonly</span> JsonSerializerOptions Op = <span style="color:#66d9ef">new</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> FileGrouper(<span style="color:#66d9ef">string</span> folderPath, IFileSystem fileSystem)
 </span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        WriteIndented = <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    };
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Новый параметр в конструктор                   ↓</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> UserRepository(<span style="color:#66d9ef">string</span> path, IFileProvider? fileProvider = <span style="color:#66d9ef">null</span>)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>path = path ?? <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> ArgumentNullException(nameof(path));
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_f</span>ileProvider = fileProvider ?? <span style="color:#66d9ef">new</span> PhysicianFileProvider();
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_f</span>olderPath = folderPath;
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_f</span>ileSystem = fileSystem;
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> List&lt;User&gt; GetAll()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> ByExtension()
 </span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Меняем вызов             ↓</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">using</span> var stream = <span style="color:#ae81ff">_f</span>ileProvider.Open(<span style="color:#ae81ff">_</span>path, FileMode.Open);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> itemList = JsonSerializer.Deserialize&lt;List&lt;User&gt;&gt;(stream, Op);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> itemList ?? <span style="color:#66d9ef">new</span> List&lt;User&gt;();
-</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Меняем вызов           ↓</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> groupFiles = <span style="color:#ae81ff">_f</span>ileSystem.GetFiles(<span style="color:#ae81ff">_f</span>olderPath)
+</span></span><span style="display:flex;"><span>            .Select(fullFileName =&gt; <span style="color:#66d9ef">new</span>
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                FullFileName = fullFileName,
+</span></span><span style="display:flex;"><span>                FileName = Path.GetFileName(fullFileName),
+</span></span><span style="display:flex;"><span>                Extension = Path.GetExtension(fullFileName)
+</span></span><span style="display:flex;"><span>            })
+</span></span><span style="display:flex;"><span>            .Where(fileInfo =&gt; !<span style="color:#66d9ef">string</span>.IsNullOrEmpty(fileInfo.Extension))
+</span></span><span style="display:flex;"><span>            .ToLookup(arg =&gt; arg.Extension);
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Save(List&lt;User&gt; items)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Меняем вызов             ↓</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">using</span> var stream = <span style="color:#ae81ff">_f</span>ileProvider.Open(<span style="color:#ae81ff">_</span>path, FileMode.Create);
-</span></span><span style="display:flex;"><span>        JsonSerializer.Serialize(stream, items, Op);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">foreach</span> (<span style="color:#66d9ef">var</span> <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">in</span> groupFiles)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> newFolder = Path.Combine(<span style="color:#ae81ff">_f</span>olderPath, <span style="color:#66d9ef">group</span>.Key);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Меняем вызовы        ↓</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (!<span style="color:#ae81ff">_f</span>ileSystem.DirectoryExists(newFolder))
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">_f</span>ileSystem.CreateDirectory(newFolder);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">foreach</span> (<span style="color:#66d9ef">var</span> file <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">group</span>)
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">var</span> newFile = Path.Combine(newFolder, file.FileName);
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Меняем вызов   ↓</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">_f</span>ileSystem.MoveFile(file.FullFileName, newFile);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>После таких минимальных изменений, мы сможем заменить работу с файловой системой, на оперативную память, сеть или любой другой источник хранения.</p>
+</span></span></code></pre></div><p>Этого достаточно, чтобы можно было заменить работу с файловой системы на оперативную память или любой другой источник.</p>
 <h2 id="пишем-тесты">Пишем тесты</h2>
 <p>В качестве библиотеки для тестирования будем использовать 
-<a href="https://xunit.net/" target="_blank">xUnit</a>. Это дело вкуса, можно использовать любую другую библиотеку для Unit тестирования.</p>
-<p>Для работы тестов, нам понадобится написать отдельную реализацию <strong>IFileProvider</strong>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MemoryFileProvider</span> : IFileProvider
+<a href="https://xunit.net/" target="_blank">xUnit</a>. Это дело вкуса, можно использовать любую другую библиотеку для unit тестирования.</p>
+<p>Для работы тестов, нам понадобится написать отдельную реализацию <strong>IFileSystem</strong>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MemoryFileSystem</span> : IFileSystem
 </span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> NonDisposableMemoryStream <span style="color:#ae81ff">_</span>memStream = <span style="color:#66d9ef">new</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> List&lt;<span style="color:#66d9ef">string</span>&gt;  <span style="color:#ae81ff">_</span>availableFiles;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Stream Open(<span style="color:#66d9ef">string</span> path, FileMode mode)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>memStream.Position = <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">_</span>memStream;
-</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> MemoryFileSystem(IEnumerable&lt;<span style="color:#66d9ef">string</span>&gt; availableFiles) 
+</span></span><span style="display:flex;"><span>        =&gt; <span style="color:#ae81ff">_</span>availableFiles = <span style="color:#66d9ef">new</span> List&lt;<span style="color:#66d9ef">string</span>&gt;(availableFiles);
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Delete(<span style="color:#66d9ef">string</span> path) { }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">sealed</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">NonDisposableMemoryStream</span> : MemoryStream
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">void</span> Dispose(<span style="color:#66d9ef">bool</span> disposing) {}
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>В рамках теста у нас будет создаваться 1 файл, поэтому можно сделать объект с 1 полем, но для корректной работы тестов, нам необходима возможность переиспользовать <strong>MemoryStream</strong> в конструкции <strong>using</strong>, поэтому создаём наследника и переопределяем метод <strong>Dispose</strong>.</p>
-<p>Для удобства тестирования, напишем ещё 2 метода расширения для <strong>IFileProvider</strong>, для того, чтобы положить в него json и достать. Их можно хранить в сборке unit тестов.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">string</span> ToJson(<span style="color:#66d9ef">this</span> IFileProvider self, <span style="color:#66d9ef">string</span> path)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> stream = self.Open(path, FileMode.Open);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">using</span> var streamReader = <span style="color:#66d9ef">new</span> StreamReader(stream);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> streamReader.ReadToEnd();
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> WithJson(<span style="color:#66d9ef">this</span> IFileProvider self, <span style="color:#66d9ef">string</span> path, 
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">string</span> json)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> stream = self.Open(path, FileMode.OpenOrCreate);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">using</span> var writer = <span style="color:#66d9ef">new</span> StreamWriter(stream);
-</span></span><span style="display:flex;"><span>    writer.Write(json);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="memberdata">MemberData</h3>
-<p>Данные для тестирования выглядят следующим образом</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> IEnumerable&lt;<span style="color:#66d9ef">object</span>[]&gt; TestData
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">get</span>
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> List&lt;<span style="color:#66d9ef">object</span>[]&gt;
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">object</span>[]
-</span></span><span style="display:flex;"><span>            {
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">@&#34;[]&#34;</span>,
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> List&lt;User&gt;()
-</span></span><span style="display:flex;"><span>            },
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">object</span>[]
-</span></span><span style="display:flex;"><span>            {
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">@&#34;[
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;Id&#34;&#34;: &#34;&#34;2d445f82-004f-4b91-ba16-4bfcd24d96e8&#34;&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;Name&#34;&#34;: &#34;&#34;Test&#34;&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;BirthDate&#34;&#34;: &#34;&#34;2022-10-10T00:00:00&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">]&#34;</span>,
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> List&lt;User&gt;
-</span></span><span style="display:flex;"><span>                {
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">new</span>(Guid.Parse(<span style="color:#e6db74">&#34;2d445f82-004f-4b91-ba16-4bfcd24d96e8&#34;</span>), 
-</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Test&#34;</span>, 
-</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">new</span> DateTime(<span style="color:#ae81ff">2022</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">10</span>))
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            },
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">object</span>[]
-</span></span><span style="display:flex;"><span>            {
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">@&#34;[
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;Id&#34;&#34;: &#34;&#34;2d445f82-004f-4b91-ba16-4bfcd24d96e8&#34;&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;Name&#34;&#34;: &#34;&#34;Test&#34;&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;BirthDate&#34;&#34;: &#34;&#34;2022-10-10T00:00:00&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">},
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;Id&#34;&#34;: &#34;&#34;2d445f82-004f-4b91-ba16-4bfcd24d96e9&#34;&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;Name&#34;&#34;: &#34;&#34;Test 2&#34;&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;BirthDate&#34;&#34;: &#34;&#34;2021-10-10T00:00:00&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">]&#34;</span>,
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> List&lt;User&gt;
-</span></span><span style="display:flex;"><span>                {
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">new</span>(Guid.Parse(<span style="color:#e6db74">&#34;2d445f82-004f-4b91-ba16-4bfcd24d96e8&#34;</span>), 
-</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Test&#34;</span>, 
-</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">new</span> DateTime(<span style="color:#ae81ff">2022</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">10</span>)),
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">new</span>(Guid.Parse(<span style="color:#e6db74">&#34;2d445f82-004f-4b91-ba16-4bfcd24d96e9&#34;</span>), 
-</span></span><span style="display:flex;"><span>                      <span style="color:#e6db74">&#34;Test 2&#34;</span>, 
-</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">new</span> DateTime(<span style="color:#ae81ff">2021</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">10</span>)),
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            },
-</span></span><span style="display:flex;"><span>        };
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="метод-save">Метод Save</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#a6e22e">[Theory]</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">[MemberData(nameof(TestData))]</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Save(<span style="color:#66d9ef">string</span> expect, List&lt;User&gt; items)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Arrange</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">string</span> filePath = <span style="color:#e6db74">&#34;tmp.json&#34;</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> fileProvider = <span style="color:#66d9ef">new</span> MemoryFileProvider();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> repository = <span style="color:#66d9ef">new</span> UserRepository(filePath, fileProvider);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Act</span>
-</span></span><span style="display:flex;"><span>    repository.Save(items);
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Вызываем метод расширение, для проверки json</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> json = fileProvider.ToJson(filePath);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Assert</span>
-</span></span><span style="display:flex;"><span>    Assert.Equal(expect, json);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="метод-getall">Метод GetAll</h3>
-<p>Он будет очень похож на тестирование метода <strong>Save</strong>, можно даже использовать <strong>MemberData</strong> из прошлого теста.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#a6e22e">[Theory]</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">[MemberData(nameof(TestData))]</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> GetAll(<span style="color:#66d9ef">string</span> initialValue, List&lt;User&gt; expect)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Arrange</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">string</span> filePath = <span style="color:#e6db74">&#34;tmp.json&#34;</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> fileProvider = <span style="color:#66d9ef">new</span> MemoryFileProvider();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Заполняем стрим, используя метод расширение</span>
-</span></span><span style="display:flex;"><span>    fileProvider.WithJson(filePath, initialValue);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> repository = <span style="color:#66d9ef">new</span> UserRepository(filePath, fileProvider);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Act</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> result = repository.GetAll();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Assert</span>
-</span></span><span style="display:flex;"><span>    Assert.Equal(expect, result);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h1 id="интеграционное-тестирование">Интеграционное тестирование</h1>
-<p>С существующей реализацией можно легко написать интеграционные тесты на наш репозиторий.</p>
-<h2 id="deletefilescope">DeleteFileScope</h2>
-<p>Чтобы тесты были лаконичнее, напишем <strong>DeleteFileScope</strong>, который будет удалять файл по окончанию теста</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">DeleteFileScope</span> : IDisposable
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IFileProvider <span style="color:#ae81ff">_f</span>ileProvider;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> <span style="color:#66d9ef">string</span> <span style="color:#ae81ff">_</span>path;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> DeleteFileScope(IFileProvider fileProvider, <span style="color:#66d9ef">string</span> path)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_f</span>ileProvider = fileProvider;
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">_</span>path = path;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Dispose()
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">_f</span>ileProvider <span style="color:#66d9ef">is</span> not PhysicianFileProvider)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>            File.Delete(<span style="color:#ae81ff">_</span>path);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">catch</span> 
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="меняем-тесты">Меняем тесты</h2>
-<p>Доработаем наши тесты, для этого обернем весь код в try finally, чтобы удалять файл по окончанию теста. Приведу пример теста метода <strong>Save</strong>, изменения во втором будут аналогичны:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#a6e22e">[Theory]</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">[MemberData(nameof(TestData))]</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Save(<span style="color:#66d9ef">string</span> expect, List&lt;User&gt; items)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Arrange</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">string</span> filePath = <span style="color:#e6db74">&#34;tmp.json&#34;</span>;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> fileProvider = <span style="color:#66d9ef">new</span> MemoryFileProvider();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> repository = <span style="color:#66d9ef">new</span> UserRepository(filePath, fileProvider);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">using</span> (<span style="color:#66d9ef">new</span> DeleteFileScope(fileProvider, filePath))
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Act</span>
-</span></span><span style="display:flex;"><span>        repository.Save(items);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> json = fileProvider.ToJson(filePath);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> List&lt;(<span style="color:#66d9ef">string</span> Source, <span style="color:#66d9ef">string</span> Destination)&gt; MoveDetail { <span style="color:#66d9ef">get</span>; } 
+</span></span><span style="display:flex;"><span>        = <span style="color:#66d9ef">new</span>();
 </span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Assert</span>
-</span></span><span style="display:flex;"><span>        Assert.Equal(expect, json);
-</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span>[] GetFiles(<span style="color:#66d9ef">string</span> directory) 
+</span></span><span style="display:flex;"><span>        =&gt; <span style="color:#ae81ff">_</span>availableFiles.ToArray();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">bool</span> DirectoryExists(<span style="color:#66d9ef">string</span> directory) =&gt; <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> CreateDirectory(<span style="color:#66d9ef">string</span> directory){}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> MoveFile(<span style="color:#66d9ef">string</span> sourceFile, <span style="color:#66d9ef">string</span> destinationFile) 
+</span></span><span style="display:flex;"><span>        =&gt; MoveDetail.Add((sourceFile, destinationFile));
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Теперь мы можем заменить <strong>new MemoryFileProvider()</strong> на <strong>new PhysicianFileProvider()</strong>, тогда тест будет тестировать взаимодействие с файловой системой. При желании мы можем передавать нужную реализацию <strong>IFileProvider</strong> в качестве аргумента теста.</p>
-<h1 id="итог">Итог</h1>
+</span></span></code></pre></div><p>Так как алгоритм оперирует путями к файлам, то нам  достаточно сохранить путь файла который хотят переместить и место, куда он будет переносен алгоритмом.</p>
+<h3 id="memberdata">MemberData</h3>
+<p>Данные для тестирования выглядят следующим образом</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#66d9ef">new</span> List&lt;<span style="color:#66d9ef">object</span>[]&gt;
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">object</span>[]
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">@&#34;D:\folder&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> List&lt;<span style="color:#66d9ef">string</span>&gt;(),
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> List&lt;(<span style="color:#66d9ef">string</span> Source, <span style="color:#66d9ef">string</span> Destination)&gt;()
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">object</span>[]
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">@&#34;D:\folder2&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> List&lt;<span style="color:#66d9ef">string</span>&gt;
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder2\1.txt&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder2\2.txt&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder2\test.mp3&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder2\test2.png&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> List&lt;(<span style="color:#66d9ef">string</span> Source, <span style="color:#66d9ef">string</span> Destination)&gt;
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder2\1.txt&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder2\.txt\1.txt&#34;</span>),
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder2\2.txt&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder2\.txt\2.txt&#34;</span>),
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder2\test.mp3&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder2\.mp3\test.mp3&#34;</span>),
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder2\test2.png&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder2\.png\test2.png&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">object</span>[]
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">@&#34;D:\folder3\tmp&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> List&lt;<span style="color:#66d9ef">string</span>&gt;
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder3\tmp\1.txt&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder3\tmp\2.txt&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder3\tmp\3&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder3\tmp\test.png&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">@&#34;D:\folder3\tmp\test2.png&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> List&lt;(<span style="color:#66d9ef">string</span> Source, <span style="color:#66d9ef">string</span> Destination)&gt;
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder3\tmp\1.txt&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder3\tmp\.txt\1.txt&#34;</span>),
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder3\tmp\2.txt&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder3\tmp\.txt\2.txt&#34;</span>),
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder3\tmp\test.png&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder3\tmp\.png\test.png&#34;</span>),
+</span></span><span style="display:flex;"><span>            (<span style="color:#e6db74">@&#34;D:\folder3\tmp\test2.png&#34;</span>, <span style="color:#e6db74">@&#34;D:\folder3\tmp\.png\test2.png&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><h3 id="проверяем-группировку">Проверяем группировку</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-csharp" data-lang="csharp"><span style="display:flex;"><span><span style="color:#a6e22e">[Theory]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">[MemberData(nameof(TestData))]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Should_group_files_with_extension(<span style="color:#66d9ef">string</span> path, 
+</span></span><span style="display:flex;"><span>    List&lt;<span style="color:#66d9ef">string</span>&gt; availableFiles, 
+</span></span><span style="display:flex;"><span>    List&lt;(<span style="color:#66d9ef">string</span> Source, <span style="color:#66d9ef">string</span> Destination)&gt; expect)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Arrange</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> fileSystem = <span style="color:#66d9ef">new</span> MemoryFileSystem(availableFiles);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#66d9ef">group</span> = <span style="color:#66d9ef">new</span> FileGrouper(path, fileSystem);
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Act</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">group</span>.ByExtension();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> actual = fileSystem.MoveDetail;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Assert</span>
+</span></span><span style="display:flex;"><span>    Assert.Equal(expect, actual);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h1 id="итог">Итог</h1>
 <p>Тестирование кода помогает помочь в проектировании класса и улучшить дизайн. Порой это приводит к избыточности, но это слихвой покрывется надёжностью кода.</p>
 <p>Благодаря тестированию, процесс разработки идёт куда быстрее, так как разработчики меньше боятся поломать существующий функционал, например, очередным рефакторингом или добавлением новой функциональности.</p>
 <h1 id="ссылки">Ссылки</h1>
