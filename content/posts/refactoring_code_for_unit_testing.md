@@ -114,7 +114,7 @@ public class PhysicianFileSystem : IFileSystem
 }
 ```
 
-## Дорабатываем репозиторий
+## Дорабатываем FileGrouper
 
 Изменения будут минимальными, заменяем все статические вызовы **File** и **Directory** на вызовы нового объекта.
 
